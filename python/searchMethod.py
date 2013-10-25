@@ -65,8 +65,11 @@ class SearchMethod(object):
 		flObj = filterList.FilterList(self._prefix)
 		if moduleMethds:
 			for keymod, valmeths in moduleMethds.iteritems():
-				if flObj.filterList(valmeths):
-					filteredDict[keymod] = flObj.filterList(valmeths)
+				value = flObj.filterList(valmeths)
+				# if no method for value is found do not 
+				# add to dictionary
+				if value:
+					filteredDict[keymod] = value
 		return filteredDict
 
 
