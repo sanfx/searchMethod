@@ -1,5 +1,6 @@
 import os
 import sys
+import string
 from PyQt4 import QtCore, QtGui
 sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
 import searchMethodUI
@@ -8,7 +9,7 @@ import filterList
 
 class SearchMethod(object):
 	"""docstring for SearchMethod"""
-	def __init__(self, module, prefix, path=None):
+	def __init__(self, module, prefix, path=""):
 		super(SearchMethod, self).__init__()
 		self._module = module
 		self._prefix = prefix
@@ -20,7 +21,7 @@ class SearchMethod(object):
 			Args:
 				path(string): path to add to sys.path
 		"""
-		if path:			
+		if path != "":			
 			if os.path.isdir(path):
 				sys.path.insert(0, path)
 		
@@ -76,16 +77,28 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.setupUi(self)
 		self._connections()
 
+
 	def main(self):
 		self.show()
 
 	def _connections(self):
 		self.searchBtn.clicked.connect(self._populateResults)
+		self.searchListView.clicked.connect(self._populateMethodsList)
 		pass
+
+	def _populateMethodsList(self):
+		methodList = []
+		items = self.searchListView.selectedIndexes()
+		for item in items:
+			methodList = str(item.data().toString()).split(":")[-1]
+		methodList = methodList.translate( None, string.whitespace ).split(",")
+		model = MyListModel(methodList, self)
+		self.methodListView.setModel(model)
+		return methodList
 
 	def _searchResults(self):
 		lookinlst = str(self.lookInsideEdit.text()).split(",")
-		searchMethObj = SearchMethod(lookinlst, str(self.lineEdit.text()))
+		searchMethObj = SearchMethod(module=lookinlst, prefix=str(self.lineEdit.text()),path = "")
 		newLst = []
 		for key, value in  searchMethObj.filterMethods().iteritems():
 			newLst.append("%s: %s" % (key, ", ".join(value)))
@@ -93,8 +106,8 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 
 	def _populateResults(self):
 		founds = self._searchResults()
-		lm = MyListModel(founds, self)
-		self.searchListView.setModel(lm)
+		self.lm = MyListModel(founds, self)
+		self.searchListView.setModel(self.lm)
 
 
 class MyListModel(QtCore.QAbstractListModel):
