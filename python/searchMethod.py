@@ -5,9 +5,6 @@ sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
 import searchMethodUI
 import filterList
 
-# for key, value in lookInside(lookin=['math']).iteritems():
-# 	print "%s: %s" %(key, value)
-# for key, values in lookInside(lookin=['filterList','math']): print "%s: %s" %(key,value)
 
 class SearchMethod(object):
 	"""docstring for SearchMethod"""
@@ -15,8 +12,18 @@ class SearchMethod(object):
 		super(SearchMethod, self).__init__()
 		self._module = module
 		self._prefix = prefix
-		if path:
-			sys.path.insert(0, path)
+		self._addPath(path)
+
+	def _addPath(self, path):
+		"""	adds path to sys paths to import a
+			custom or module that is not in sys paths.
+			Args:
+				path(string): path to add to sys.path
+		"""
+		if path:			
+			if os.path.isdir(path):
+				sys.path.insert(0, path)
+		
 
 	def _listOfMethods(self, lookinside):
 		"""	Performs an import of the argument and retuns a list of all methods in it.
@@ -24,8 +31,11 @@ class SearchMethod(object):
 				lookinside(string): module name as string to import.
 			Returns(List): a list of methods in the module passed as argument
 		"""
-		if lookinside:
-			return dir(__import__(lookinside, globals={}, locals={}, fromlist=[], level=-1))
+		try:
+			if lookinside:
+				return dir(__import__(lookinside, globals={}, locals={}, fromlist=[], level=-1))
+		except ImportError:
+			return []
 
 	def lookInside(self, lookin=None):
 		""" looks inside the method passed in argument
@@ -38,7 +48,8 @@ class SearchMethod(object):
 		lookinsideDict = {}
 		if lookin:		
 			for each in lookin:
-				lookinsideDict[each]=self._listOfMethods(each)
+				if self._listOfMethods(each) != []:
+					lookinsideDict[each]=self._listOfMethods(each)
 		return lookinsideDict
 
 	def filterMethods(self):
@@ -53,7 +64,8 @@ class SearchMethod(object):
 		flObj = filterList.FilterList(self._prefix)
 		if moduleMethds:
 			for keymod, valmeths in moduleMethds.iteritems():
-				filteredDict[keymod] = flObj.filterList(valmeths)
+				if flObj.filterList(valmeths):
+					filteredDict[keymod] = flObj.filterList(valmeths)
 		return filteredDict
 
 
@@ -101,7 +113,6 @@ class MyListModel(QtCore.QAbstractListModel):
         else:
             return QtCore.QVariant()
 
-# print searchMethObj.filterMethods()
 
 if __name__ == '__main__':
 	app = QtGui.QApplication(sys.argv)
