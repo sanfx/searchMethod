@@ -2,6 +2,7 @@ import os
 import sys
 import string
 from PyQt4 import QtCore, QtGui
+from tempfile import TemporaryFile
 sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
 import searchMethodUI
 import filterList
@@ -24,7 +25,7 @@ class SearchMethod(object):
 		if path != "":			
 			if os.path.isdir(path):
 				sys.path.insert(0, path)
-		
+
 
 	def _listOfMethods(self, lookinside):
 		"""	Performs an import of the argument and retuns a list of all methods in it.
@@ -79,6 +80,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		super(SearchMethodUI, self).__init__(parent)
 		self.setupUi(self)
 		self._connections()
+		self.pathAdded = None 
 
 
 	def main(self):
@@ -87,7 +89,41 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 	def _connections(self):
 		self.searchBtn.clicked.connect(self._populateResults)
 		self.searchListView.clicked.connect(self._populateMethodsList)
+		self.methodListView.clicked.connect(self.outputHelp)
+		self.browseBtn.clicked.connect(self._browseModulePath)
 		pass
+
+	def _browseModulePath(self):
+		selectedDir=str(QtGui.QFileDialog.getExistingDirectory(self,"Browse"))
+		if selectedDir:
+			self.addPathEdit.setText(selectedDir)
+			self.pathAdded = selectedDir
+
+	def outputHelp(self):
+		module = ""
+		items = self.searchListView.selectedIndexes()
+		for item in items:
+			module = str(item.data().toString()).split(":")[0]
+		method = ""
+		items = self.methodListView.selectedIndexes()
+		for selItem in items:
+			method = str(selItem.data().toString())
+
+		t = TemporaryFile()
+		# when path added is not in sys.path by default
+		if self.pathAdded:
+			data = 'python -c "import sys; sys.path.insert(0,\''+self.pathAdded+'\'); import '+module+'; help('+module+'.'+method+')"'
+		else:
+			data = 'python -c "import '+module+'; help('+module+'.'+method+')"'
+
+		t.write(data)
+		t.seek(0)
+		output = os.popen(t.read()).read()
+		t.closed
+		self.helpOnSelMethodTxtEdit.setText(output)
+		# if something is in output it means data resulted of execution of os.popen succeded
+		if output:
+			return True
 
 	def _populateMethodsList(self):
 		methodList = []
