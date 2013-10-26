@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/searchMethod.ui'
 #
-# Created: Sat Oct 26 12:10:02 2013
+# Created: Sat Oct 26 14:46:23 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!

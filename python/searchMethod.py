@@ -80,8 +80,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		super(SearchMethodUI, self).__init__(parent)
 		self.setupUi(self)
 		self._connections()
-		self.pathAdded = None 
-
+		self.pathAdded = None
 
 	def main(self):
 		self.show()
@@ -91,9 +90,22 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.searchListView.clicked.connect(self._populateMethodsList)
 		self.methodListView.clicked.connect(self.outputHelp)
 		self.browseBtn.clicked.connect(self._browseModulePath)
-		pass
+
+	def keyPressEvent(self, keyevent):
+		"""	Capture key to execute and exit 
+			on Enter and Escape respectively.
+		"""
+		if (self.lookInsideEdit.text() and self.lineEdit.text()):
+			if keyevent.key() == QtCore.Qt.Key_Enter-1:
+				self._populateResults()
+		if keyevent.key() == QtCore.Qt.Key_Escape:
+			self.close()
+
 
 	def _browseModulePath(self):
+		"""	This module launches the directory browser
+			to locate the module as set the path.
+		"""
 		selectedDir=str(QtGui.QFileDialog.getExistingDirectory(self,"Browse"))
 		if selectedDir:
 			self.addPathEdit.setText(selectedDir)
@@ -133,6 +145,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		methodList = methodList.translate( None, string.whitespace ).split(",")
 		model = MyListModel(methodList, self)
 		self.methodListView.setModel(model)
+		self.methodListView.selectionModel().selectionChanged.connect(self.outputHelp)
 		return methodList
 
 	def _searchResults(self):
@@ -147,23 +160,24 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		founds = self._searchResults()
 		self.lm = MyListModel(founds, self)
 		self.searchListView.setModel(self.lm)
+		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
 
 
 class MyListModel(QtCore.QAbstractListModel):
-    def __init__(self, datain, parent=None, *args):
-        """ datain: a list where each item is a row
-        """
-        QtCore.QAbstractTableModel.__init__(self, parent, *args)
-        self.listdata = datain
+	def __init__(self, datain, parent=None, *args):
+		""" datain: a list where each item is a row
+		"""
+		QtCore.QAbstractTableModel.__init__(self, parent, *args)
+		self.listdata = datain
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.listdata)
+	def rowCount(self, parent=QtCore.QModelIndex()):
+		return len(self.listdata)
 
-    def data(self, index, role):
-        if index.isValid() and role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant(self.listdata[index.row()])
-        else:
-            return QtCore.QVariant()
+	def data(self, index, role):
+		if index.isValid() and role == QtCore.Qt.DisplayRole:
+			return QtCore.QVariant(self.listdata[index.row()])
+		else:
+			return QtCore.QVariant()
 
 
 if __name__ == '__main__':
