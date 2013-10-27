@@ -17,7 +17,7 @@ class SearchMethod(object):
 			prefix(string): prefix to filter the list
 			path(string): path of the module not in sys.path
 	"""
-	def __init__(self, modules, prefix, path=None, terminal=False):
+	def __init__(self, modules, prefix, path="", terminal=False):
 		super(SearchMethod, self).__init__()
 		self._module = modules
 		self._prefix = prefix
@@ -88,8 +88,7 @@ class SearchMethod(object):
 			for module, methods in self.filterMethods().iteritems():
 				for method in methods:
 					proc = subprocess.Popen(prepExecData(module, method, self._path),  shell=True, stdout=subprocess.PIPE)
-					line = proc.stdout.read()
-					print line
+					print proc.stdout.read()
 
 
 class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
@@ -186,7 +185,7 @@ class MyListModel(QtCore.QAbstractListModel):
 		else:
 			return QtCore.QVariant()
 
-def prepExecData(module, method, path=None):
+def prepExecData(module, method, path=""):
 	"""	Prepares data to fetch help of found methods of the
 		modules.
 		Args:
@@ -194,8 +193,7 @@ def prepExecData(module, method, path=None):
 			method(str): method whose help needs to be printed.
 			path(str): location of the module not in sys.path
 		Return:
-			data(str):
-				returns a string
+			data(str): returns a string
 	"""
 	# when path added is not in sys.path by default
 	if path:
