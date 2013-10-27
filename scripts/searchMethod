@@ -1,0 +1,43 @@
+#! /usr/bin/env python
+# -*-coding: utf8-*-
+# file: searchMethod
+# Author: Sanjeev Kumar
+
+import argparse
+
+import os, __builtin__
+import sys
+
+MODULES_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "python")
+sys.path.insert(0, MODULES_PATH)
+
+import searchMethod
+
+message = """ This script searchMethod will let you find methods you cannot remember exactly,
+recalling the starting letter of the method you can think of can be used to filter the list of
+methods in the module or list of modules.
+
+This scripts opens by default if used without -t flag. If you use -t flag that stands for terminal
+mode, then you can pass the -m and -f arguments to get result in terminal skipping the UI.
+"""
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', help='display results in terminal.', action='store_true')
+parser.add_argument('-m', '--modules', help='List to module or package name, \
+	e.g. searchMethod -m=\"[\'sys\', \'math\']\" in inverted commas.')
+parser.add_argument('-f', nargs='?', help='prefix to filters the methods names starting with.')
+parser.add_argument('-p','--path',help='location of the module not in sys.path by default.')
+parser.add_argument('-d', '--desc', action='store_true', help="Prints description of the tool.")
+args = parser.parse_args()
+
+if args.desc:
+	print message
+elif not args.t:
+	searchMethod.main()
+else:
+	print args.f
+	if (args.modules and args.f):
+		searchMethObj = searchMethod.SearchMethod(modules=eval(args.modules), prefix=args.f, path=args.path, terminal=True)
+		searchMethObj.printMethodHelp()
+	else:
+		print "Please pass both the -m and -f flags with its values."

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/searchMethod.ui'
 #
-# Created: Sat Oct 26 14:46:23 2013
+# Created: Sun Oct 27 13:26:22 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -38,6 +38,7 @@ class Ui_searchMethodMainWidget(object):
         self.horizontalLayout_3.addWidget(self.lineEdit)
         self.gridLayout.addLayout(self.horizontalLayout_3, 1, 1, 1, 1)
         self.addPathEdit = QtGui.QLineEdit(searchMethodMainWidget)
+        self.addPathEdit.setInputMask("")
         self.addPathEdit.setObjectName("addPathEdit")
         self.gridLayout.addWidget(self.addPathEdit, 0, 1, 1, 1)
         self.addPathlbl = QtGui.QLabel(searchMethodMainWidget)
@@ -79,12 +80,22 @@ class Ui_searchMethodMainWidget(object):
 
         self.retranslateUi(searchMethodMainWidget)
         QtCore.QMetaObject.connectSlotsByName(searchMethodMainWidget)
+        searchMethodMainWidget.setTabOrder(self.lookInsideEdit, self.lineEdit)
+        searchMethodMainWidget.setTabOrder(self.lineEdit, self.searchBtn)
+        searchMethodMainWidget.setTabOrder(self.searchBtn, self.searchListView)
+        searchMethodMainWidget.setTabOrder(self.searchListView, self.methodListView)
+        searchMethodMainWidget.setTabOrder(self.methodListView, self.helpOnSelMethodTxtEdit)
+        searchMethodMainWidget.setTabOrder(self.helpOnSelMethodTxtEdit, self.addPathEdit)
+        searchMethodMainWidget.setTabOrder(self.addPathEdit, self.browseBtn)
 
     def retranslateUi(self, searchMethodMainWidget):
         searchMethodMainWidget.setWindowTitle(QtGui.QApplication.translate("searchMethodMainWidget", "Search Method", None, QtGui.QApplication.UnicodeUTF8))
         self.searchBtn.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Search", None, QtGui.QApplication.UnicodeUTF8))
         self.lookInsideLbl.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Look Inside", None, QtGui.QApplication.UnicodeUTF8))
+        self.lookInsideEdit.setToolTip(QtGui.QApplication.translate("searchMethodMainWidget", "modules or package names separated by comma", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Prefix", None, QtGui.QApplication.UnicodeUTF8))
+        self.lineEdit.setToolTip(QtGui.QApplication.translate("searchMethodMainWidget", "prefix to filter from all methods", None, QtGui.QApplication.UnicodeUTF8))
+        self.addPathEdit.setToolTip(QtGui.QApplication.translate("searchMethodMainWidget", "location of module or package not in sys.path", None, QtGui.QApplication.UnicodeUTF8))
         self.addPathlbl.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Add Path", None, QtGui.QApplication.UnicodeUTF8))
         self.browseBtn.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Browse", None, QtGui.QApplication.UnicodeUTF8))
 

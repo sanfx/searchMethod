@@ -1,31 +1,28 @@
 import os
 import sys
 import string
-from PyQt4 import QtCore, QtGui
-from tempfile import TemporaryFile
-sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
+import subprocess
 import searchMethodUI
+from PyQt4 import QtCore, QtGui
+
+sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
 import filterList
 
-
 class SearchMethod(object):
-	"""docstring for SearchMethod"""
-	def __init__(self, module, prefix, path=""):
+	"""	SearchMethod class contains methods to
+		filter the list of methods to match the 
+		starting prefix.
+		Args:
+			modules(List): List of all the modules
+			prefix(string): prefix to filter the list
+			path(string): path of the module not in sys.path
+	"""
+	def __init__(self, modules, prefix, path=None, terminal=False):
 		super(SearchMethod, self).__init__()
-		self._module = module
+		self._module = modules
 		self._prefix = prefix
-		self._addPath(path)
-
-	def _addPath(self, path):
-		"""	adds path to sys paths to import a
-			custom or module that is not in sys paths.
-			Args:
-				path(string): path to add to sys.path
-		"""
-		if path != "":			
-			if os.path.isdir(path):
-				sys.path.insert(0, path)
-
+		self._terminalmode = terminal
+		self._path = path
 
 	def _listOfMethods(self, lookinside):
 		"""	Performs an import of the argument and retuns a list of all methods in it.
@@ -73,6 +70,27 @@ class SearchMethod(object):
 					filteredDict[keymod] = value
 		return filteredDict
 
+	def searchResults(self):
+		newLst = []
+		for key, value in  self.filterMethods().iteritems():
+			newLst.append("%s: %s" % (key, ", ".join(value)))
+			if self._terminalmode:
+				methStr = "methods" if len(value)> 1 else "method" 
+				print "Module: %s has %s %s" % (key, methStr, value)
+		return newLst
+
+	def printMethodHelp(self):
+		if not self.searchResults():
+			print "No matching method found of prefix you supplied."
+		# This is done becuase methods help could be large and user may have to scroll up/down.
+		viewHelp = raw_input("Print help on methods found? Enter yes or y to print.\n>> ")
+		if viewHelp == "yes" or viewHelp == "y":
+			for module, methods in self.filterMethods().iteritems():
+				for method in methods:
+					proc = subprocess.Popen(prepExecData(module, method, self._path),  shell=True, stdout=subprocess.PIPE)
+					line = proc.stdout.read()
+					print line
+
 
 class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 	"""docstring for SearchMethodUI"""
@@ -110,7 +128,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		if selectedDir:
 			self.addPathEdit.setText(selectedDir)
 			self.pathAdded = selectedDir
-
+		
 	def outputHelp(self):
 		module = ""
 		items = self.searchListView.selectedIndexes()
@@ -121,17 +139,11 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		for selItem in items:
 			method = str(selItem.data().toString())
 
-		t = TemporaryFile()
-		# when path added is not in sys.path by default
-		if self.pathAdded:
-			data = 'python -c "import sys; sys.path.insert(0,\''+self.pathAdded+'\'); import '+module+'; help('+module+'.'+method+')"'
-		else:
-			data = 'python -c "import '+module+'; help('+module+'.'+method+')"'
 
-		t.write(data)
-		t.seek(0)
-		output = os.popen(t.read()).read()
-		t.closed
+		data = prepExecData(module, method, self.pathAdded)
+
+		output = os.popen(data).read()
+
 		self.helpOnSelMethodTxtEdit.setText(output)
 		# if something is in output it means data resulted of execution of os.popen succeded
 		if output:
@@ -148,16 +160,11 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.methodListView.selectionModel().selectionChanged.connect(self.outputHelp)
 		return methodList
 
-	def _searchResults(self):
-		lookinlst = str(self.lookInsideEdit.text()).split(",")
-		searchMethObj = SearchMethod(module=lookinlst, prefix=str(self.lineEdit.text()),path = "")
-		newLst = []
-		for key, value in  searchMethObj.filterMethods().iteritems():
-			newLst.append("%s: %s" % (key, ", ".join(value)))
-		return newLst
 
 	def _populateResults(self):
-		founds = self._searchResults()
+		lookinlst = str(self.lookInsideEdit.text()).split(",")
+		searchMethObj = SearchMethod(modules=lookinlst, prefix=str(self.lineEdit.text()),path = "")
+		founds = searchMethObj.searchResults()
 		self.lm = MyListModel(founds, self)
 		self.searchListView.setModel(self.lm)
 		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
@@ -179,11 +186,31 @@ class MyListModel(QtCore.QAbstractListModel):
 		else:
 			return QtCore.QVariant()
 
+def prepExecData(module, method, path=None):
+	"""	Prepares data to fetch help of found methods of the
+		modules.
+		Args:
+			module(str): module to import
+			method(str): method whose help needs to be printed.
+			path(str): location of the module not in sys.path
+		Return:
+			data(str):
+				returns a string
+	"""
+	# when path added is not in sys.path by default
+	if path:
+		data = 'python -c "import sys; sys.path.insert(0,\''+path+'\'); import '+module+'; help('+module+'.'+method+')"'
+	else:
+		data = 'python -c "import '+module+'; help('+module+'.'+method+')"'
+	return data
 
-if __name__ == '__main__':
+def main():
 	app = QtGui.QApplication(sys.argv)
 	smObj = SearchMethodUI()
 	smObj.main()
 	app.exec_()
+	
+if __name__ == '__main__':
+	main()
 
 

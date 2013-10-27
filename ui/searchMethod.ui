@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <author>Sanjeev Kumar</author>
  <class>searchMethodMainWidget</class>
  <widget class="QWidget" name="searchMethodMainWidget">
   <property name="geometry">
@@ -35,7 +36,11 @@
        <item row="1" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLineEdit" name="lookInsideEdit"/>
+          <widget class="QLineEdit" name="lookInsideEdit">
+           <property name="toolTip">
+            <string>modules or package names separated by comma</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QLabel" name="label">
@@ -45,12 +50,23 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit"/>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="toolTip">
+            <string>prefix to filter from all methods</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="addPathEdit"/>
+        <widget class="QLineEdit" name="addPathEdit">
+         <property name="toolTip">
+          <string extracomment="location of module or package not in sys.path">location of module or package not in sys.path</string>
+         </property>
+         <property name="inputMask">
+          <string/>
+         </property>
+        </widget>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="addPathlbl">
@@ -130,6 +146,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lookInsideEdit</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>searchBtn</tabstop>
+  <tabstop>searchListView</tabstop>
+  <tabstop>methodListView</tabstop>
+  <tabstop>helpOnSelMethodTxtEdit</tabstop>
+  <tabstop>addPathEdit</tabstop>
+  <tabstop>browseBtn</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
