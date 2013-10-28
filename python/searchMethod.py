@@ -4,7 +4,7 @@ import string
 import subprocess
 import searchMethodUI
 from PyQt4 import QtCore, QtGui
-
+ # [modules[1] for modules in pkgutil.iter_modules()]
 sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
 import filterList
 
