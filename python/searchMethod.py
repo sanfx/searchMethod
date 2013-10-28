@@ -17,7 +17,7 @@ class SearchMethod(object):
 			prefix(string): prefix to filter the list
 			path(string): path of the module not in sys.path
 	"""
-	def __init__(self, modules, prefix, path="", terminal=False):
+	def __init__(self, modules, prefix="", path="", terminal=False):
 		super(SearchMethod, self).__init__()
 		self._module = modules
 		self._prefix = prefix
@@ -63,10 +63,10 @@ class SearchMethod(object):
 		flObj = filterList.FilterList(self._prefix)
 		if moduleMethds:
 			for keymod, valmeths in moduleMethds.iteritems():
-				if self._prefix == 'all':
-					value = valmeths
-				else:
+				if self._prefix:
 					value = flObj.filterList(valmeths)
+				else:
+					value = valmeths
 				# if no method for value is found do not 
 				# add to dictionary
 				if value:
@@ -115,11 +115,12 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		"""	Capture key to execute and exit 
 			on Enter and Escape respectively.
 		"""
-		if (self.lookInsideEdit.text() and self.lineEdit.text()):
+		if str(self.lookInsideEdit.text()):
 			if keyevent.key() == QtCore.Qt.Key_Enter-1:
+				# print "Hello"
 				self._populateResults()
-		if keyevent.key() == QtCore.Qt.Key_Escape:
-			self.close()
+			if keyevent.key() == QtCore.Qt.Key_Escape:
+				self.close()
 
 
 	def _browseModulePath(self):
@@ -165,7 +166,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 
 	def _populateResults(self):
 		lookinlst = str(self.lookInsideEdit.text()).split(",")
-		searchMethObj = SearchMethod(modules=lookinlst, prefix=str(self.lineEdit.text()),path = "")
+		searchMethObj = SearchMethod(modules=lookinlst, prefix=str(self.lineEdit.text()), path="")
 		founds = searchMethObj.searchResults()
 		self.lm = MyListModel(founds, self)
 		self.searchListView.setModel(self.lm)
