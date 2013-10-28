@@ -63,7 +63,10 @@ class SearchMethod(object):
 		flObj = filterList.FilterList(self._prefix)
 		if moduleMethds:
 			for keymod, valmeths in moduleMethds.iteritems():
-				value = flObj.filterList(valmeths)
+				if self._prefix == 'all':
+					value = valmeths
+				else:
+					value = flObj.filterList(valmeths)
 				# if no method for value is found do not 
 				# add to dictionary
 				if value:
