@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/searchMethod.ui'
+# Form implementation generated from reading ui file '/Users/sanjeevkumar/Development/python/searchMethod/ui/searchMethod.ui'
 #
-# Created: Sun Oct 27 13:26:22 2013
+# Created: Wed Oct 30 21:43:03 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,7 +27,7 @@ class Ui_searchMethodMainWidget(object):
         self.gridLayout.addWidget(self.lookInsideLbl, 1, 0, 1, 1)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.lookInsideEdit = QtGui.QLineEdit(searchMethodMainWidget)
+        self.lookInsideEdit = CompleterLineEdit(searchMethodMainWidget)
         self.lookInsideEdit.setObjectName("lookInsideEdit")
         self.horizontalLayout_3.addWidget(self.lookInsideEdit)
         self.label = QtGui.QLabel(searchMethodMainWidget)
@@ -99,3 +99,4 @@ class Ui_searchMethodMainWidget(object):
         self.addPathlbl.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Add Path", None, QtGui.QApplication.UnicodeUTF8))
         self.browseBtn.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Browse", None, QtGui.QApplication.UnicodeUTF8))
 
+from autoComplete import CompleterLineEdit

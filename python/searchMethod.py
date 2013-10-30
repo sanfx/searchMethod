@@ -4,10 +4,14 @@ import string
 import subprocess
 import searchMethodUI
 from PyQt4 import QtCore, QtGui
- # [modules[1] for modules in pkgutil.iter_modules()]
-sys.path.insert(0, '/Users/sanjeevkumar/Development/python/listFilter/python/')
-import filterList
+# from autoComplete import CompleterLineEdit
+import pkgutil
 
+from PyQt4.Qt import Qt, QObject, QLineEdit, QCompleter, \
+	QStringListModel, SIGNAL
+class SearchMethodException(Exception):
+	pass
+		
 class SearchMethod(object):
 	"""	SearchMethod class contains methods to
 		filter the list of methods to match the 
@@ -51,6 +55,31 @@ class SearchMethod(object):
 					lookinsideDict[each]=self._listOfMethods(each)
 		return lookinsideDict
 
+	def _isValidString(self, lst):
+		"""	
+		"""
+		for index, item in enumerate(lst):
+			if type(item) == str:
+				continue
+			else:
+				raise SearchMethodException("%i item '%s' is not of type string" % (index+1, item))
+		return True
+
+	def filterList(self, lst):
+
+		if self._isValidString(lst):
+			if not self._prefix:
+				logging.info("Nothing passed to filter list %s" % lst)
+				return []
+			filteredList = []
+			for eachItem in lst:
+				if eachItem.startswith(self._prefix):
+					filteredList.append(eachItem)
+			if filteredList == []:
+				print (" This module/package doesn't have any method starting with letter '%s'." % self._prefix)
+				return []
+			return filteredList
+
 	def filterMethods(self):
 		"""	Filters the items in a list of methods
 			Returns:
@@ -60,11 +89,10 @@ class SearchMethod(object):
 		"""
 		moduleMethds = self.lookInside(self._module)
 		filteredDict = {}
-		flObj = filterList.FilterList(self._prefix)
 		if moduleMethds:
 			for keymod, valmeths in moduleMethds.iteritems():
 				if self._prefix:
-					value = flObj.filterList(valmeths)
+					value = self.filterList(valmeths)
 				else:
 					value = valmeths
 				# if no method for value is found do not 
@@ -101,6 +129,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.setupUi(self)
 		self._connections()
 		self.pathAdded = None
+		self.__completer()
 
 	def main(self):
 		self.show()
@@ -108,7 +137,6 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 	def _connections(self):
 		self.searchBtn.clicked.connect(self._populateResults)
 		self.searchListView.clicked.connect(self._populateMethodsList)
-		self.methodListView.clicked.connect(self.outputHelp)
 		self.browseBtn.clicked.connect(self._browseModulePath)
 
 	def keyPressEvent(self, keyevent):
@@ -117,11 +145,20 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		"""
 		if str(self.lookInsideEdit.text()):
 			if keyevent.key() == QtCore.Qt.Key_Enter-1:
-				# print "Hello"
 				self._populateResults()
 			if keyevent.key() == QtCore.Qt.Key_Escape:
 				self.close()
 
+	def __completer(self):
+ 		allmodulesLst = [modules[1] for modules in pkgutil.iter_modules()]
+		completer = TagsCompleter(self.lookInsideEdit, allmodulesLst)
+		completer.setCaseSensitivity(Qt.CaseInsensitive)
+		QObject.connect(self.lookInsideEdit, SIGNAL('text_changed(PyQt_PyObject, PyQt_PyObject)'), 
+			completer.update)
+		QObject.connect(completer, SIGNAL('activated(QString)'),
+			self.lookInsideEdit.complete_text)
+ 
+		completer.setWidget(self.lookInsideEdit)
 
 	def _browseModulePath(self):
 		"""	This module launches the directory browser
@@ -135,22 +172,26 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 	def outputHelp(self):
 		module = ""
 		items = self.searchListView.selectedIndexes()
-		for item in items:
-			module = str(item.data().toString()).split(":")[0]
-		method = ""
-		items = self.methodListView.selectedIndexes()
-		for selItem in items:
-			method = str(selItem.data().toString())
+		if items:
+
+			for item in items:
+				module = str(item.data().toString()).split(":")[0]
+			method = ""
+			items = self.methodListView.selectedIndexes()
+			for selItem in items:
+				method = str(selItem.data().toString())
 
 
-		data = prepExecData(module, method, self.pathAdded)
+			data = prepExecData(module, method, self.pathAdded)
 
-		output = os.popen(data).read()
+			output = os.popen(data).read()
 
-		self.helpOnSelMethodTxtEdit.setText(output)
-		# if something is in output it means data resulted of execution of os.popen succeded
-		if output:
-			return True
+			self.helpOnSelMethodTxtEdit.setText(output)
+			# if something is in output it means data resulted of execution of os.popen succeded
+			if output:
+				return True
+		else:
+			QtGui.QMessageBox.about(self, "Select the Module/Package first !!!", "Please select an item from search search above.")
 
 	def _populateMethodsList(self):
 		methodList = []
@@ -172,6 +213,21 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.searchListView.setModel(self.lm)
 		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
 
+
+class TagsCompleter(QCompleter):
+ 
+	def __init__(self, parent, all_tags):
+		QCompleter.__init__(self, all_tags, parent)
+		self.all_tags = set(all_tags)
+ 
+	def update(self, text_tags, completion_prefix):
+		tags = list(self.all_tags.difference(text_tags))
+		model = QStringListModel(tags, self)
+		self.setModel(model)
+ 
+		self.setCompletionPrefix(completion_prefix)
+		if completion_prefix.strip() != '':
+			self.complete()
 
 class MyListModel(QtCore.QAbstractListModel):
 	def __init__(self, datain, parent=None, *args):
@@ -197,14 +253,17 @@ def prepExecData(module, method, path=""):
 			method(str): method whose help needs to be printed.
 			path(str): location of the module not in sys.path
 		Return:
-			data(str): returns a string
+				returns a concatenated command as a string 
 	"""
-	# when path added is not in sys.path by default
 	if path:
-		data = 'python -c "import sys; sys.path.insert(0,\''+path+'\'); import '+module+'; help('+module+'.'+method+')"'
+		return 'python -c "import sys; sys.path.insert(0,\''+path+'\'); import '+module+'; help('+module+'.'+method+')'""
 	else:
-		data = 'python -c "import '+module+'; help('+module+'.'+method+')"'
-	return data
+		if module.find(".") == -1:
+			return 'python -c "from '+module+' import '+method+'; help('+method+')"'
+		else:
+			impMod = module.split(".")[0]
+			return 'python -c """import '+impMod+';\nif \''+method+'\' in dir('+module+'):\n\thelp('+module+'.'+method+')\nelse:\n\tfrom '+impMod+' import '+method+'\n\thelp('+method+')"""'
+
 
 def main():
 	app = QtGui.QApplication(sys.argv)

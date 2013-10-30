@@ -36,7 +36,7 @@
        <item row="1" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLineEdit" name="lookInsideEdit">
+          <widget class="CompleterLineEdit" name="lookInsideEdit">
            <property name="toolTip">
             <string>modules or package names separated by comma</string>
            </property>
@@ -146,6 +146,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CompleterLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>CompleterLineEdit</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>lookInsideEdit</tabstop>
   <tabstop>lineEdit</tabstop>
