@@ -12,7 +12,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Search Method</string>
+   <string>Search Method with help</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -40,6 +40,15 @@
            <property name="toolTip">
             <string>modules or package names separated by comma</string>
            </property>
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
+           <property name="dragEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Enter module name</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -54,6 +63,12 @@
            <property name="toolTip">
             <string>prefix to filter from all methods</string>
            </property>
+           <property name="placeholderText">
+            <string>Enter starting letter/s or leave empty and hit enter</string>
+           </property>
+           <property name="cursorMoveStyle">
+            <enum>Qt::VisualMoveStyle</enum>
+           </property>
           </widget>
          </item>
         </layout>
@@ -65,6 +80,9 @@
          </property>
          <property name="inputMask">
           <string/>
+         </property>
+         <property name="placeholderText">
+          <string>Add path of the module or package not in sys.path list by default</string>
          </property>
         </widget>
        </item>
@@ -85,6 +103,33 @@
       </layout>
      </item>
      <item>
+      <widget class="QLabel" name="resultlbl">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>9</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Results</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QListView" name="searchListView">
        <property name="maximumSize">
         <size>
@@ -92,11 +137,20 @@
          <height>150</height>
         </size>
        </property>
+       <property name="tabKeyNavigation">
+        <bool>true</bool>
+       </property>
+       <property name="isWrapping" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="resizeMode">
+        <enum>QListView::Adjust</enum>
+       </property>
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="1" column="0">
         <widget class="QListView" name="methodListView">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -118,8 +172,13 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="1">
         <widget class="QTextEdit" name="helpOnSelMethodTxtEdit">
+         <property name="font">
+          <font>
+           <underline>false</underline>
+          </font>
+         </property>
          <property name="cursor" stdset="0">
           <cursorShape>IBeamCursor</cursorShape>
          </property>
@@ -137,10 +196,45 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="methodlbl">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>9</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Methods</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="helplbl">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>12</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Help</string>
+         </property>
+        </widget>
+       </item>
       </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout"/>
      </item>
     </layout>
    </item>
@@ -150,7 +244,7 @@
   <customwidget>
    <class>CompleterLineEdit</class>
    <extends>QLineEdit</extends>
-   <header>CompleterLineEdit</header>
+   <header>autoComplete</header>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -158,8 +252,6 @@
   <tabstop>lineEdit</tabstop>
   <tabstop>searchBtn</tabstop>
   <tabstop>searchListView</tabstop>
-  <tabstop>methodListView</tabstop>
-  <tabstop>helpOnSelMethodTxtEdit</tabstop>
   <tabstop>addPathEdit</tabstop>
   <tabstop>browseBtn</tabstop>
  </tabstops>

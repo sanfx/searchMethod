@@ -4,14 +4,16 @@ import string
 import subprocess
 import searchMethodUI
 from PyQt4 import QtCore, QtGui
-# from autoComplete import CompleterLineEdit
+from autoComplete import TagsCompleter
 import pkgutil
 
-from PyQt4.Qt import Qt, QObject, QLineEdit, QCompleter, \
-	QStringListModel, SIGNAL
+from PyQt4.Qt import Qt, QObject, SIGNAL
+
+
 class SearchMethodException(Exception):
 	pass
-		
+
+
 class SearchMethod(object):
 	"""	SearchMethod class contains methods to
 		filter the list of methods to match the 
@@ -56,21 +58,19 @@ class SearchMethod(object):
 		return lookinsideDict
 
 	def _isValidString(self, lst):
-		"""	
+		"""	Checks if the enteres string is string or not
 		"""
 		for index, item in enumerate(lst):
 			if type(item) == str:
 				continue
 			else:
-				raise SearchMethodException("%i item '%s' is not of type string" % (index+1, item))
+				raise SearchMethodException("%i item '%s' is not of type string" 
+					% (index+1, item))
 		return True
 
 	def filterList(self, lst):
 
 		if self._isValidString(lst):
-			if not self._prefix:
-				logging.info("Nothing passed to filter list %s" % lst)
-				return []
 			filteredList = []
 			for eachItem in lst:
 				if eachItem.startswith(self._prefix):
@@ -107,7 +107,7 @@ class SearchMethod(object):
 			newLst.append("%s: %s" % (key, ", ".join(value)))
 			if self._terminalmode:
 				methStr = "methods" if len(value)> 1 else "method" 
-				print "Module: %s has %s %s" % (key, methStr, value)
+				print("Module: %s has %s %s" % (key, methStr, value))
 		return newLst
 
 	def printMethodHelp(self):
@@ -119,11 +119,13 @@ class SearchMethod(object):
 			for module, methods in self.filterMethods().iteritems():
 				for method in methods:
 					proc = subprocess.Popen(prepExecData(module, method, self._path),  shell=True, stdout=subprocess.PIPE)
-					print proc.stdout.read()
+					print(proc.stdout.read())
 
 
 class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
-	"""docstring for SearchMethodUI"""
+	"""	This class defines methods for GUI and
+		the one that change the output.
+	"""
 	def __init__(self, parent=None):
 		super(SearchMethodUI, self).__init__(parent)
 		self.setupUi(self)
@@ -149,9 +151,19 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			if keyevent.key() == QtCore.Qt.Key_Escape:
 				self.close()
 
+	def __listAllModules(self):
+		"""	This method returns all the modules installed in python
+			including the built in ones.
+		"""
+		allmodules = list(sys.builtin_module_names)
+		allmodules += list(t[1] for t in pkgutil.iter_modules())
+		allmodules = sorted(allmodules)
+		return allmodules
+
 	def __completer(self):
- 		allmodulesLst = [modules[1] for modules in pkgutil.iter_modules()]
-		completer = TagsCompleter(self.lookInsideEdit, allmodulesLst)
+		"""	Auto completes module names in self.lookInsideEdit
+		"""
+		completer = TagsCompleter(self.lookInsideEdit, self.__listAllModules())
 		completer.setCaseSensitivity(Qt.CaseInsensitive)
 		QObject.connect(self.lookInsideEdit, SIGNAL('text_changed(PyQt_PyObject, PyQt_PyObject)'), 
 			completer.update)
@@ -170,6 +182,8 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			self.pathAdded = selectedDir
 		
 	def outputHelp(self):
+		"""	This methods outputs help on the self.helpOnSelMethodTxtEdit
+		"""
 		module = ""
 		items = self.searchListView.selectedIndexes()
 		if items:
@@ -187,13 +201,20 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			output = os.popen(data).read()
 
 			self.helpOnSelMethodTxtEdit.setText(output)
-			# if something is in output it means data resulted of execution of os.popen succeded
+			# if something is in output it means data resulted of execution of 
+			# os.popen succeded
 			if output:
 				return True
 		else:
-			QtGui.QMessageBox.about(self, "Select the Module/Package first !!!", "Please select an item from search search above.")
+			QtGui.QMessageBox.about(self, "Select the Module/Package first !!!", \
+				"Please select an item from search search above.")
 
 	def _populateMethodsList(self):
+		"""	Populates the self.methodListView with all methods shown
+			in the search result
+			Returns:
+				methodList(List): list of methods
+		"""
 		methodList = []
 		items = self.searchListView.selectedIndexes()
 		for item in items:
@@ -206,6 +227,10 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 
 
 	def _populateResults(self):
+		"""	Populates the self.searchListView with the result
+			of all methods when no prefix is entered or module's
+			methods with matching prefix
+		"""
 		lookinlst = str(self.lookInsideEdit.text()).split(",")
 		searchMethObj = SearchMethod(modules=lookinlst, prefix=str(self.lineEdit.text()), path="")
 		founds = searchMethObj.searchResults()
@@ -213,21 +238,6 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.searchListView.setModel(self.lm)
 		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
 
-
-class TagsCompleter(QCompleter):
- 
-	def __init__(self, parent, all_tags):
-		QCompleter.__init__(self, all_tags, parent)
-		self.all_tags = set(all_tags)
- 
-	def update(self, text_tags, completion_prefix):
-		tags = list(self.all_tags.difference(text_tags))
-		model = QStringListModel(tags, self)
-		self.setModel(model)
- 
-		self.setCompletionPrefix(completion_prefix)
-		if completion_prefix.strip() != '':
-			self.complete()
 
 class MyListModel(QtCore.QAbstractListModel):
 	def __init__(self, datain, parent=None, *args):
