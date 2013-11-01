@@ -8,9 +8,7 @@ from PyQt4 import QtCore, QtGui
 from autoComplete import TagsCompleter
 
 import pkgutil
-
 from PyQt4.Qt import Qt, QObject, SIGNAL
-
 import utils
 
 
@@ -114,15 +112,19 @@ class SearchMethod(object):
 
 class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 	"""	This class defines methods for GUI and
-		the one that change the output.
+		the methods that update or change the content of UI.
 	"""
 	def __init__(self, parent=None):
 		super(SearchMethodUI, self).__init__(parent)
 		self.setupUi(self)
 		self._connections()
 		self.pathAdded = None
+		self.xmlDataObj = utils.ReadWriteCustomPathsToDisk()
+		
 		self.__moduleCompleter()
-		self.__dirCompleter()
+		self.__pathsList()
+		# self._filter = Filter()
+		# self.addPathEdit.installEventFilter(self._filter)
 
 	def main(self):
 		self.show()
@@ -151,14 +153,27 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		allmodules = sorted(allmodules)
 		return allmodules
 
-	def __dirCompleter(self): 
+	def __pathsList(self):
+		defaultList = self.xmlDataObj.xmlData().values()
+		completerList = QtCore.QStringList()
+		for i in defaultList:
+			completerList.append(QtCore.QString(i))
+		lineEditCompleter = QtGui.QCompleter(completerList)
+		# lineEditCompleter.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+		# model = MyListModel(defaultList, self)
+		self.addPathEdit.setCompleter(lineEditCompleter)
+
+
+	def __dirCompleter(self):
+		# completer = TagsCompleter(self.addPathEdit, self.xmlDataObj.xmlData().values())
 		dirModel = QtGui.QFileSystemModel() 
 		dirModel.setRootPath(QtCore.QDir.currentPath()) 
 		dirModel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Files) 
 		# dirModel.setNameFilters(self.filter) 
 		dirModel.setNameFilterDisables(0) 
-		completer = QtGui.QCompleter(dirModel,self)		 
-		completer.setModel(dirModel) 
+		completer = QtGui.QCompleter(dirModel,self)	
+
+		completer.setModel(dirModel)
 		completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive) 
 		self.addPathEdit.setCompleter(completer)
 
@@ -172,17 +187,17 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			completer.update)
 		QObject.connect(completer, SIGNAL('activated(QString)'),
 			self.lookInsideEdit.complete_text)
- 
+ 		completer.setWidget(self.addPathEdit)
 		completer.setWidget(self.lookInsideEdit)
 
 	def _browseModulePath(self):
 		"""	This module launches the directory browser
 			to locate the module as set the path.
 		"""
-		selectedDir=str(QtGui.QFileDialog.getExistingDirectory(self,"Browse"))
+		selectedDir = str(QtGui.QFileDialog.getExistingDirectory(self,"Browse"))
 		if selectedDir:
-			writObj = utils.ReadWriteCustomPathsToDisk(selectedDir)
-			if not writObj._entryExist():
+			writObj = utils.ReadWriteCustomPathsToDisk()
+			if not writObj._entryExist(path):
 				writObj.updateXml()
 			self.addPathEdit.setText(selectedDir)
 			self.lookInsideEdit.setText(os.path.split(selectedDir)[-1])
@@ -202,11 +217,9 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			for selItem in items:
 				method = str(selItem.data().toString())
 
-
 			data = utils.prepExecData(module, method, self.pathAdded)
 
 			output = os.popen(data).read()
-
 			self.helpOnSelMethodTxtEdit.setText(output)
 			# if something is in output it means data resulted of execution of 
 			# os.popen succeded
@@ -245,6 +258,18 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.searchListView.setModel(self.lm)
 		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
 
+class Filter(QtCore.QObject):
+	def eventFilter(self, widget, event):
+		# FocusIn event
+		if event.type() == QtCore.QEvent.FocusIn:
+			# do custom stuff
+			print 'focus In'
+			# return False so that the widget will also handle the event
+			# otherwise it won't focus out
+			return True
+		else:
+			# we don't care about other events
+			return False
 
 class MyListModel(QtCore.QAbstractListModel):
 	def __init__(self, datain, parent=None, *args):

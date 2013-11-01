@@ -26,9 +26,8 @@ def prepExecData(module, method, path=""):
 class ReadWriteCustomPathsToDisk(object):
 	"""	Reads and writes the XML file using ElementTree
 	"""
-	def __init__(self, modulePath):
+	def __init__(self):
 		super(ReadWriteCustomPathsToDisk, self).__init__()
-		self.modulePath = modulePath
 
 	def _xmlFileLocation(self):
 		xmlFileLocation =  os.path.join(os.path.expanduser("~"), "Documents","searchMethod","modules.xml")
@@ -48,8 +47,8 @@ class ReadWriteCustomPathsToDisk(object):
 		return modPath
 		
 
-	def _entryExist(self):
-		if self.modulePath in self.xmlData().values():
+	def _entryExist(self, path):
+		if path in self.xmlData().values():
 			return True
 		else:
 			return False
@@ -90,9 +89,9 @@ def makeXml(path):
 # makeXml("/Desktop/filterList")
 root = etree.parse(xmlFile).getroot()
 lst = root.getchildren()
-print lst
-for each in lst:
-	print each.text ,each.tag, each.attrib['name']
+# print lst
+# for each in lst:
+# 	print each.text ,each.tag, each.attrib['name']
 	# print each.findtext('module')
 	# if each.findtext("/Desktop/filterList"):
 	# 	print "Yippe"
