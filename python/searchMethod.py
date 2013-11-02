@@ -188,7 +188,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			items = self.methodListView.selectedIndexes()
 			for selItem in items:
 				method = str(selItem.data().toString())
-
+			print module, method, self.pathAdded
 			data = utils.prepExecData(module, method, self.pathAdded)
 
 			output = os.popen(data).read()
