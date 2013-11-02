@@ -2,6 +2,8 @@ from xml.etree.ElementTree import ElementTree
 from xml.etree.ElementTree import Element
 import xml.etree.ElementTree as etree
 import os
+from PyQt4.Qt import Qt, QObject, QLineEdit
+from PyQt4 import QtCore, QtGui
 
 def prepExecData(module, method, path=""):
 	"""	Prepares data to fetch help of found methods of the
@@ -28,6 +30,7 @@ class ReadWriteCustomPathsToDisk(object):
 	"""
 	def __init__(self):
 		super(ReadWriteCustomPathsToDisk, self).__init__()
+		self.modulePath = ''
 
 	def _xmlFileLocation(self):
 		xmlFileLocation =  os.path.join(os.path.expanduser("~"), "Documents","searchMethod","modules.xml")
@@ -51,11 +54,12 @@ class ReadWriteCustomPathsToDisk(object):
 		if path in self.xmlData().values():
 			return True
 		else:
+			self.modulePath = path
 			return False
 
 	def addEntry(self):
 		path = self.modulePath
-		if self._entryExist():
+		if self._entryExist(path):
 			return
 		else:
 			root = self.readXml() if self._xmlFileLocation else Element("modules")
@@ -69,34 +73,52 @@ class ReadWriteCustomPathsToDisk(object):
 
 	def updateXml(self):
 		tree = self.addEntry()
-		print "Saving to %s " % self._xmlFileLocation()
+		print "Adding newly added module to quick access."
 		tree.write(open(self._xmlFileLocation(),'w'))
 
 
-xmlFile = ""
-xmlLocation =  os.path.join(os.path.expanduser("~"), "Documents","searchMethod")
-xmlFile = os.path.join(xmlLocation,"module.xml")
-def makeXml(path):
-	root = Element("modules")
-	tree = ElementTree(root)
-	childPath = Element("module")
-	childPath.set("name", os.path.basename(path))
-	root.append(childPath)
-	childPath.text = path
-	# print etree.tostring(root)
-	tree.write(open(xmlFile,'w'))
+class AddPathLineEdit(QLineEdit, QtCore.QObject):
 
-# makeXml("/Desktop/filterList")
-root = etree.parse(xmlFile).getroot()
-lst = root.getchildren()
-# print lst
-# for each in lst:
-# 	print each.text ,each.tag, each.attrib['name']
-	# print each.findtext('module')
-	# if each.findtext("/Desktop/filterList"):
-	# 	print "Yippe"
+	"""	docstring for AddPathLineEdit
+	"""
+	def __init__(self, arg):
+		super(AddPathLineEdit, self).__init__()
+		self.xmlDataObj = ReadWriteCustomPathsToDisk()
+		self.defaultList = self.xmlDataObj.xmlData().values()
+		self.__pathsList()
 
-# makeXml("~/Documens/sorter.mod")
+	def focusInEvent(self, event):
+		QtGui.QLineEdit.focusInEvent(self, event)
+		self.completer().complete()
 
-# xmlRWObj = ReadWriteCustomPathsToDisk("~/Documens/sorter.mod")
-# xmlRWObj.readXml()
+	def focusOutEvent(self, event):
+		QtGui.QLineEdit.focusOutEvent(self, event)
+		self.defaultList = self.xmlDataObj.xmlData().values()
+		self.__pathsList()
+
+	def switchCompleter(self):
+		if self.text() == "/":
+			self.__dirCompleter()
+		else:
+			self.__pathsList()
+
+	def __dirCompleter(self):
+		dirModel = QtGui.QFileSystemModel() 
+		dirModel.setRootPath(QtCore.QDir.currentPath()) 
+		dirModel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Files) 
+		dirModel.setNameFilterDisables(0) 
+		completer = QtGui.QCompleter(dirModel, self)	
+		completer.setModel(dirModel)
+		completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive) 
+		self.setCompleter(completer)
+
+	def __pathsList(self):
+
+		completerList = QtCore.QStringList()
+		for i in self.defaultList:
+			completerList.append(QtCore.QString(i))
+		lineEditCompleter = QtGui.QCompleter(completerList)
+		lineEditCompleter.setCompletionMode(QtGui.QCompleter.PopupCompletion)
+		lineEditCompleter.setMaxVisibleItems(6)
+		self.setCompleter(lineEditCompleter)
+		

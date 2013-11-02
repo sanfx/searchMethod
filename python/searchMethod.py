@@ -120,11 +120,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self._connections()
 		self.pathAdded = None
 		self.xmlDataObj = utils.ReadWriteCustomPathsToDisk()
-		
 		self.__moduleCompleter()
-		self.__pathsList()
-		# self._filter = Filter()
-		# self.addPathEdit.installEventFilter(self._filter)
 
 	def main(self):
 		self.show()
@@ -153,30 +149,6 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		allmodules = sorted(allmodules)
 		return allmodules
 
-	def __pathsList(self):
-		defaultList = self.xmlDataObj.xmlData().values()
-		completerList = QtCore.QStringList()
-		for i in defaultList:
-			completerList.append(QtCore.QString(i))
-		lineEditCompleter = QtGui.QCompleter(completerList)
-		# lineEditCompleter.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
-		# model = MyListModel(defaultList, self)
-		self.addPathEdit.setCompleter(lineEditCompleter)
-
-
-	def __dirCompleter(self):
-		# completer = TagsCompleter(self.addPathEdit, self.xmlDataObj.xmlData().values())
-		dirModel = QtGui.QFileSystemModel() 
-		dirModel.setRootPath(QtCore.QDir.currentPath()) 
-		dirModel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Files) 
-		# dirModel.setNameFilters(self.filter) 
-		dirModel.setNameFilterDisables(0) 
-		completer = QtGui.QCompleter(dirModel,self)	
-
-		completer.setModel(dirModel)
-		completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive) 
-		self.addPathEdit.setCompleter(completer)
-
 	def __moduleCompleter(self):
 		"""	Auto completes module names in self.lookInsideEdit
 		"""
@@ -197,7 +169,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		selectedDir = str(QtGui.QFileDialog.getExistingDirectory(self,"Browse"))
 		if selectedDir:
 			writObj = utils.ReadWriteCustomPathsToDisk()
-			if not writObj._entryExist(path):
+			if not writObj._entryExist(selectedDir):
 				writObj.updateXml()
 			self.addPathEdit.setText(selectedDir)
 			self.lookInsideEdit.setText(os.path.split(selectedDir)[-1])
@@ -258,18 +230,6 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.searchListView.setModel(self.lm)
 		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
 
-class Filter(QtCore.QObject):
-	def eventFilter(self, widget, event):
-		# FocusIn event
-		if event.type() == QtCore.QEvent.FocusIn:
-			# do custom stuff
-			print 'focus In'
-			# return False so that the widget will also handle the event
-			# otherwise it won't focus out
-			return True
-		else:
-			# we don't care about other events
-			return False
 
 class MyListModel(QtCore.QAbstractListModel):
 	def __init__(self, datain, parent=None, *args):

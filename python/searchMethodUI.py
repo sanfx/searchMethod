@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/searchMethod.ui'
 #
-# Created: Thu Oct 31 10:01:06 2013
+# Created: Sat Nov  2 02:20:15 2013
 #      by: pyside-uic 0.2.13 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -40,7 +40,7 @@ class Ui_searchMethodMainWidget(object):
         self.lineEdit.setObjectName("lineEdit")
         self.horizontalLayout_3.addWidget(self.lineEdit)
         self.gridLayout.addLayout(self.horizontalLayout_3, 1, 1, 1, 1)
-        self.addPathEdit = QtGui.QLineEdit(searchMethodMainWidget)
+        self.addPathEdit = AddPathLineEdit(searchMethodMainWidget)
         self.addPathEdit.setInputMask("")
         self.addPathEdit.setObjectName("addPathEdit")
         self.gridLayout.addWidget(self.addPathEdit, 0, 1, 1, 1)
@@ -139,3 +139,4 @@ class Ui_searchMethodMainWidget(object):
         self.helplbl.setText(QtGui.QApplication.translate("searchMethodMainWidget", "Help", None, QtGui.QApplication.UnicodeUTF8))
 
 from autoComplete import CompleterLineEdit
+from utils import AddPathLineEdit

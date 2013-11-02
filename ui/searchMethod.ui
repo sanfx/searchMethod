@@ -74,7 +74,7 @@
         </layout>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="addPathEdit">
+        <widget class="AddPathLineEdit" name="addPathEdit">
          <property name="toolTip">
           <string extracomment="location of module or package not in sys.path">location of module or package not in sys.path</string>
          </property>
@@ -245,6 +245,11 @@
    <class>CompleterLineEdit</class>
    <extends>QLineEdit</extends>
    <header>autoComplete</header>
+  </customwidget>
+  <customwidget>
+   <class>AddPathLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>utils</header>
   </customwidget>
  </customwidgets>
  <tabstops>
