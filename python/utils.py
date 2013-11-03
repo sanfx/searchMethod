@@ -77,6 +77,22 @@ class ReadWriteCustomPathsToDisk(object):
 		tree.write(open(self._xmlFileLocation(),'w'))
 
 
+class MyListModel(QtCore.QAbstractListModel):
+	def __init__(self, datain, parent=None, *args):
+		""" datain: a list where each item is a row
+		"""
+		QtCore.QAbstractTableModel.__init__(self, parent, *args)
+		self.listdata = datain
+
+	def rowCount(self, parent=QtCore.QModelIndex()):
+		return len(self.listdata)
+
+	def data(self, index, role):
+		if index.isValid() and role == QtCore.Qt.DisplayRole:
+			return QtCore.QVariant(self.listdata[index.row()])
+		else:
+			return QtCore.QVariant()
+
 class AddPathLineEdit(QLineEdit, QtCore.QObject):
 
 	"""	docstring for AddPathLineEdit
@@ -84,6 +100,7 @@ class AddPathLineEdit(QLineEdit, QtCore.QObject):
 	def __init__(self, arg):
 		super(AddPathLineEdit, self).__init__()
 		self.xmlDataObj = ReadWriteCustomPathsToDisk()
+		self.textChanged.connect(self.switchCompleter)
 		self.defaultList = self.xmlDataObj.xmlData().values()
 		self.__pathsList()
 
@@ -92,14 +109,16 @@ class AddPathLineEdit(QLineEdit, QtCore.QObject):
 		self.completer().complete()
 
 	def focusOutEvent(self, event):
+		if event.reason() != QtCore.Qt.PopupFocusReason:
+			self.__pathsList()
+        # super(MyLineEdit, self).focusOutEvent(event)
 		QtGui.QLineEdit.focusOutEvent(self, event)
-		self.defaultList = self.xmlDataObj.xmlData().values()
-		self.__pathsList()
+		# self.defaultList = self.xmlDataObj.xmlData().values()
 
 	def switchCompleter(self):
-		if self.text() == "/":
+		if len(self.text()) >= 1:
 			self.__dirCompleter()
-		else:
+		if len(self.text()) == 0:
 			self.__pathsList()
 
 	def __dirCompleter(self):

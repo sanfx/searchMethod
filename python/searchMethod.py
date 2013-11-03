@@ -8,7 +8,7 @@ from PyQt4 import QtCore, QtGui
 from autoComplete import TagsCompleter
 
 import pkgutil
-from PyQt4.Qt import Qt, QObject, SIGNAL
+from PyQt4.Qt import Qt, QObject, SIGNAL, SLOT
 import utils
 
 
@@ -119,8 +119,16 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.setupUi(self)
 		self._connections()
 		self.pathAdded = None
+		# self.addPathEdit.textChanged.connect(self.handleEditingFinished)
 		self.xmlDataObj = utils.ReadWriteCustomPathsToDisk()
 		self.__moduleCompleter()
+
+
+	def handleEditingFinished(self):
+		if self.addPathEdit.isModified():
+			# do interesting stuff ...
+			print 'Editing Finished'
+			self.addPathEdit.setModified(False)
 
 	def main(self):
 		self.show()
@@ -188,7 +196,6 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 			items = self.methodListView.selectedIndexes()
 			for selItem in items:
 				method = str(selItem.data().toString())
-			print module, method, self.pathAdded
 			data = utils.prepExecData(module, method, self.pathAdded)
 
 			output = os.popen(data).read()
@@ -212,7 +219,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		for item in items:
 			methodList = str(item.data().toString()).split(":")[-1]
 		methodList = methodList.translate( None, string.whitespace ).split(",")
-		model = MyListModel(methodList, self)
+		model = utils.MyListModel(methodList, self)
 		self.methodListView.setModel(model)
 		self.methodListView.selectionModel().selectionChanged.connect(self.outputHelp)
 		return methodList
@@ -226,27 +233,9 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		lookinlst = str(self.lookInsideEdit.text()).split(",")
 		searchMethObj = SearchMethod(modules=lookinlst, prefix=str(self.lineEdit.text()), path="")
 		founds = searchMethObj.searchResults()
-		self.lm = MyListModel(founds, self)
+		self.lm = utils.MyListModel(founds, self)
 		self.searchListView.setModel(self.lm)
 		self.searchListView.selectionModel().selectionChanged.connect(self._populateMethodsList)
-
-
-class MyListModel(QtCore.QAbstractListModel):
-	def __init__(self, datain, parent=None, *args):
-		""" datain: a list where each item is a row
-		"""
-		QtCore.QAbstractTableModel.__init__(self, parent, *args)
-		self.listdata = datain
-
-	def rowCount(self, parent=QtCore.QModelIndex()):
-		return len(self.listdata)
-
-	def data(self, index, role):
-		if index.isValid() and role == QtCore.Qt.DisplayRole:
-			return QtCore.QVariant(self.listdata[index.row()])
-		else:
-			return QtCore.QVariant()
-
 
 
 def main():
@@ -257,5 +246,3 @@ def main():
 	
 if __name__ == '__main__':
 	main()
-
-
