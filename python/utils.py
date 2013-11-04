@@ -81,7 +81,7 @@ class MyListModel(QtCore.QAbstractListModel):
 	def __init__(self, datain, parent=None, *args):
 		""" datain: a list where each item is a row
 		"""
-		QtCore.QAbstractTableModel.__init__(self, parent, *args)
+		QtCore.QAbstractListModel.__init__(self, parent, *args)
 		self.listdata = datain
 
 	def rowCount(self, parent=QtCore.QModelIndex()):
@@ -99,45 +99,39 @@ class AddPathLineEdit(QLineEdit, QtCore.QObject):
 	"""
 	def __init__(self, arg):
 		super(AddPathLineEdit, self).__init__()
+		self.fileSystemCompleter()
 		self.xmlDataObj = ReadWriteCustomPathsToDisk()
-		self.textChanged.connect(self.switchCompleter)
 		self.defaultList = self.xmlDataObj.xmlData().values()
-		self.__pathsList()
+		self._pathsListCompleter()
+		self.textEdited.connect(self._switchCompleter)
 
 	def focusInEvent(self, event):
+		self._switchCompleter()
 		QtGui.QLineEdit.focusInEvent(self, event)
+		self.setModified(False)
 		self.completer().complete()
 
-	def focusOutEvent(self, event):
-		if event.reason() != QtCore.Qt.PopupFocusReason:
-			self.__pathsList()
-        # super(MyLineEdit, self).focusOutEvent(event)
-		QtGui.QLineEdit.focusOutEvent(self, event)
-		# self.defaultList = self.xmlDataObj.xmlData().values()
+	def fileSystemCompleter(self):
+		self._model = QtGui.QFileSystemModel(self)
+		self._model.setRootPath(QtCore.QDir.currentPath())
+		self._model.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot)
+		self._model.setNameFilterDisables(0)
+		# Initiate completer for FileSystemModel
+		self._fileCompleter = QtGui.QCompleter(self._model)
+		self._fileCompleter.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+		self._fileCompleter.setModel(self._model)
 
-	def switchCompleter(self):
-		if len(self.text()) >= 1:
-			self.__dirCompleter()
+	def _pathsListCompleter(self):
+		self._completerList = QtCore.QStringList(self.defaultList)
+		# Initiates Completer for List we are getting from XML
+		self._lineEditCompleter = QtGui.QCompleter(self._completerList)
+		self._lineEditCompleter.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+		self.setCompleter(self._lineEditCompleter)
+
+	def _switchCompleter(self):
 		if len(self.text()) == 0:
-			self.__pathsList()
-
-	def __dirCompleter(self):
-		dirModel = QtGui.QFileSystemModel() 
-		dirModel.setRootPath(QtCore.QDir.currentPath()) 
-		dirModel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Files) 
-		dirModel.setNameFilterDisables(0) 
-		completer = QtGui.QCompleter(dirModel, self)	
-		completer.setModel(dirModel)
-		completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive) 
-		self.setCompleter(completer)
-
-	def __pathsList(self):
-
-		completerList = QtCore.QStringList()
-		for i in self.defaultList:
-			completerList.append(QtCore.QString(i))
-		lineEditCompleter = QtGui.QCompleter(completerList)
-		lineEditCompleter.setCompletionMode(QtGui.QCompleter.PopupCompletion)
-		lineEditCompleter.setMaxVisibleItems(6)
-		self.setCompleter(lineEditCompleter)
+			self.setCompleter(self._lineEditCompleter)
+			self.completer().complete()
+		else:
+			self.setCompleter(self._fileCompleter)
 		

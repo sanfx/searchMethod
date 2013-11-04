@@ -119,16 +119,8 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.setupUi(self)
 		self._connections()
 		self.pathAdded = None
-		# self.addPathEdit.textChanged.connect(self.handleEditingFinished)
 		self.xmlDataObj = utils.ReadWriteCustomPathsToDisk()
 		self.__moduleCompleter()
-
-
-	def handleEditingFinished(self):
-		if self.addPathEdit.isModified():
-			# do interesting stuff ...
-			print 'Editing Finished'
-			self.addPathEdit.setModified(False)
 
 	def main(self):
 		self.show()
@@ -145,8 +137,8 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		if str(self.lookInsideEdit.text()):
 			if keyevent.key() == QtCore.Qt.Key_Enter-1:
 				self._populateResults()
-			if keyevent.key() == QtCore.Qt.Key_Escape:
-				self.close()
+		if keyevent.key() == QtCore.Qt.Key_Escape:
+			self.close()
 
 	def __listAllModules(self):
 		"""	This method returns all the modules installed in python
