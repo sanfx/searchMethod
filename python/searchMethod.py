@@ -118,6 +118,7 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		super(SearchMethodUI, self).__init__(parent)
 		self.setupUi(self)
 		self._connections()
+		self.addPathEdit.textChanged.connect(self._isBrowse)
 		self.pathAdded = None
 		self.xmlDataObj = utils.ReadWriteCustomPathsToDisk()
 		self.__moduleCompleter()
@@ -129,6 +130,11 @@ class SearchMethodUI(QtGui.QWidget, searchMethodUI.Ui_searchMethodMainWidget):
 		self.searchBtn.clicked.connect(self._populateResults)
 		self.searchListView.clicked.connect(self._populateMethodsList)
 		self.browseBtn.clicked.connect(self._browseModulePath)
+
+	def _isBrowse(self):
+		if self.addPathEdit.text() == 'Browse':
+			self.addPathEdit.setText("")
+			self._browseModulePath()
 
 	def keyPressEvent(self, keyevent):
 		"""	Capture key to execute and exit 

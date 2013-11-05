@@ -102,6 +102,7 @@ class AddPathLineEdit(QLineEdit, QtCore.QObject):
 		self.fileSystemCompleter()
 		self.xmlDataObj = ReadWriteCustomPathsToDisk()
 		self.defaultList = self.xmlDataObj.xmlData().values()
+		self.defaultList.insert(2, "Browse")
 		self._pathsListCompleter()
 		self.textEdited.connect(self._switchCompleter)
 
@@ -125,6 +126,7 @@ class AddPathLineEdit(QLineEdit, QtCore.QObject):
 		self._completerList = QtCore.QStringList(self.defaultList)
 		# Initiates Completer for List we are getting from XML
 		self._lineEditCompleter = QtGui.QCompleter(self._completerList)
+		self._lineEditCompleter.setMaxVisibleItems(3)
 		self._lineEditCompleter.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
 		self.setCompleter(self._lineEditCompleter)
 
